@@ -121,7 +121,8 @@ data_rslt_f <- data_rslt_f |> select(all_of(cols)) |> relocate(any_of(cols))
 # Prepare the data_rslt_f to work with it latter
 data_rslt_f_id <- data_rslt_f |> mutate(compound_id = str_glue('cmpnd_{row_number()}'))
 # Try basic UMAP with the predicted activities
-umap_basic_zerotwo <- umap(data_rslt_f, n_neighbors = 7)
+set.seed(11)
+umap_basic_zerotwo <- umap(data_rslt_f, n_neighbors = 7, preserve.seed = TRUE)
 data_rslt_f_id$x <- umap_basic_zerotwo$layout[,1]
 data_rslt_f_id$y <- umap_basic_zerotwo$layout[,2]
 data_rslt_f_id <- data_rslt_f_id |>
@@ -138,12 +139,12 @@ plot_basic
 ggsave(str_glue('{path_fs}basic_UMAP.png'), width = 7, height = 7, units = 'in', dpi = 300)
 
 ## Try UMAP with the neighboring points
-# Generate the whole space
-featureSpace <- thetaComb(theta = c(0,1), nfact = 25, intercept = FALSE)
 # Prepare the available points
 availableSpace <- data_rslt_f_id |> select(-allkey, -compound_id, -x, -y) |> as.matrix()
-mode(featureSpace) <- 'integer'
 mode(availableSpace) <- 'integer'
+# Generate the whole space
+featureSpace <- thetaComb(theta = c(0,1), nfact = ncol(availableSpace), intercept = FALSE)
+mode(featureSpace) <- 'integer'
 
 # Create the shared path
 path <- matrix( data = NA, nrow = nrow(availableSpace)^2 * ncol(availableSpace), ncol = ncol(availableSpace) )
